@@ -1,0 +1,26 @@
+name: Deploy ML Model
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: pip install -r lecture1-model-deployment/flask-api/requirements.txt
+      - name: Run tests
+        run: pytest lecture2-mlops-ci-cd/tests/
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker image
+        run: docker build -t ml-model:latest ./lecture1-model-deployment/flask-api/
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f ./lecture2-mlops-ci-cd/kubernetes/deployment.yaml
